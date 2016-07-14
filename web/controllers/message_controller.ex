@@ -1,0 +1,78 @@
+defmodule Docs.MessageController do
+  use Docs.Web, :controller
+
+  alias Docs.Message
+
+
+  plug :find_document
+  plug :scrub_params, "message" when action in [:create, :update]
+
+  def index(conn, _params) do
+    doc = conn.assigns.doc
+    msgs = Repo.all(from m in assoc(doc, :messages), preload: [:document])
+    render(conn, "index.html", messages: msgs)
+  end
+
+  def new(conn, _params) do
+    changeset = Message.changeset(%Message{})
+    render(conn, "new.html", changeset: changeset)
+  end
+
+  def create(conn, %{"message" => message_params}) do
+    doc = conn.assigns.doc
+    changeset = 
+    doc 
+    |> Ecto.Model.build(:messages)
+    |> Message.changeset(message_params)
+
+    case Repo.insert(changeset) do
+      {:ok, _message} ->
+        conn
+        |> put_flash(:info, "Message created successfully.")
+        |> redirect(to: document_message_path(conn, :index, doc))
+      {:error, changeset} ->
+        render(conn, "new.html", changeset: changeset)
+    end
+  end
+
+  # def show(conn, %{"id" => id}) do
+  #   message = Repo.get!(Message, id)
+  #   render(conn, "show.html", message: message)
+  # end
+  #
+  # def edit(conn, %{"id" => id}) do
+  #   message = Repo.get!(Message, id)
+  #   changeset = Message.changeset(message)
+  #   render(conn, "edit.html", message: message, changeset: changeset)
+  # end
+  #
+  # def update(conn, %{"id" => id, "message" => message_params}) do
+  #   message = Repo.get!(Message, id)
+  #   changeset = Message.changeset(message, message_params)
+  #
+  #   case Repo.update(changeset) do
+  #     {:ok, message} ->
+  #       conn
+  #       |> put_flash(:info, "Message updated successfully.")
+  #       |> redirect(to: document_message_path(conn, :show, doc,  message))
+  #     {:error, changeset} ->
+  #       render(conn, "edit.html", message: message, changeset: changeset)
+  #   end
+  # end
+  #
+  # def delete(conn, %{"id" => id}) do
+  #   message = Repo.get!(Message, id)
+  #
+  #   # Here we use delete! (with a bang) because we expect
+  #   # it to always work (and if it does not, it will raise).
+  #   Repo.delete!(message)
+  #
+  #   conn
+  #   |> put_flash(:info, "Message deleted successfully.")
+  #   |> redirect(to: document_message_path(conn, :index, doc, message))
+  # end
+
+    defp find_document(conn, _) do
+      assign(conn, :doc, Repo.get!(Docs.Document, conn.params["document_id"]))
+    end 
+end

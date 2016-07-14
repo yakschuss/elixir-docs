@@ -1,15 +1,14 @@
-defmodule Docs.Document do
+defmodule Docs.Message do
   use Docs.Web, :model
 
-  schema "documents" do
+  schema "messages" do
     field :body, :string
-    field :title, :string
-    has_many :messages, Docs.Message
+    belongs_to :document, Docs.Document
 
     timestamps
   end
 
-  @required_fields ~w(body title)
+  @required_fields ~w(body)
   @optional_fields ~w()
 
   @doc """
@@ -22,5 +21,4 @@ defmodule Docs.Document do
     model
     |> cast(params, @required_fields, @optional_fields)
   end
-
 end
